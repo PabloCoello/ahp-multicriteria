@@ -1,5 +1,5 @@
 {
-    "path_to_file": "./google-data/Actuaciones post-incendio (respuestas).xlsx",
+    "path_to_file": "./data/Data.xlsx",
     "pares":{
         "1":"Valor economico en riesgo##Servicios ecosistemicos culturales en riesgo",
         "2":"Valor economico en riesgo##Servicios ecosistemicos medioambientales en riesgo",
@@ -19,5 +19,15 @@
         "5":"Zona no designada como de especial interes para la conservacion",
         "6":"Zona catalogada o bien como ZEPA o bien como ZEC",
         "7":"Zona catalogada como ZEPA y como ZEC"
+    },
+    "niveles":{
+        "Valor economico en riesgo":{},
+        "Coste del tratamiento":{},
+        "Servicios ecosistemicos culturales en riesgo":{},
+        "Servicios ecosistemicos medioambientales en riesgo":{
+            "Zona no designada como de especial interes para la conservacion":{},
+            "Zona catalogada o bien como ZEPA o bien como ZEC":{},
+            "Zona catalogada como ZEPA y como ZEC":{}
+        }
     }
 }
