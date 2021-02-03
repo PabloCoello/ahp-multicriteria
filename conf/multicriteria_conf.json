@@ -1,5 +1,5 @@
 {
-    "path_to_file": "./google-data/Actuaciones post-incendio (respuestas).xlsx",
+    "path_to_file": "./data/Datos.xlsx",
     "pares":{
         "1":"Valor economico en riesgo##Servicios ecosistemicos culturales en riesgo",
         "2":"Valor economico en riesgo##Servicios ecosistemicos medioambientales en riesgo",

@@ -142,7 +142,7 @@ for (attribute in att) {
 
 
 
-sondaxe <- read_excel("Results/Results/Datos.xlsx")
+sondaxe <- read_excel("./data/Datos.xlsx")
 multi_conf <- fromJSON(file = './conf/multicriteria_conf.json')
 
 # CODIFICACION
