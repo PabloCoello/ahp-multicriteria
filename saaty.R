@@ -1,36 +1,5 @@
-suppressMessages(library(readxl))
 suppressMessages(library(rjson))
 suppressMessages(library(stringr))
-
-
-format_multi_df <- function(sondaxe, multi_conf, columns) {
-  #' Format raw df from google forms.
-  #'
-  #' Note that the questions are hardcoded into the function.
-  
-  criterios <-
-    sondaxe[,columns[grep(c('A'), columns)]] # Get first part of the question
-  grados <-
-    sondaxe[,columns[grep(c('B'), columns)]]# Get second part of the question
-  
-  # Rename both parts with the criteria of the question (from conf)
-  for (col in 1:length(colnames(criterios))) {
-    colnames(criterios)[col] <- multi_conf[['pares']][as.character(col)]
-    colnames(grados)[col] <- multi_conf[['pares']][as.character(col)]
-  }
-  
-  # Remove na rows from criterios in criterios and grados
-  criterios.na <- complete.cases(criterios)
-  criterios <- criterios[criterios.na, ]
-  grados <- grados[criterios.na, ]
-  
-  # Remove na rows from grados in criterios and grados
-  grados.na <- complete.cases(grados)
-  criterios <- criterios[grados.na, ]
-  grados <- grados[grados.na, ]
-  
-  return(list(criterios, grados))
-}
 
 
 get_att <- function(list) {
@@ -41,8 +10,19 @@ get_att <- function(list) {
   return(att)
 }
 
+encode_criteria <- function(df, conf){
+  eq <- unlist(conf[['equivalencias']])
+  df <- list[[1]]
+  for(col in names(df)){
+    for(value in names(eq)){
+      df[which(df[,col]==as.numeric(value)),col] <- eq[value]
+    }
+  }
+  return(df)
+}
 
-get_matrix <- function(list, att, row) {
+
+get_matrix <- function(list, att, row, conf) {
   #' First step of the extraction of multicriteria weights, returns matrix of
   #' scores based on saaty scale.
   
@@ -52,10 +32,15 @@ get_matrix <- function(list, att, row) {
   colnames(matrix) <- att
   
   # Load components:
-  criteria_names <- colnames(list[[1]]) # Vector of criteria names
   criterios <- list[[1]] # criterios, from format_multi_df()
   grados <- list[[2]] # grados, from format_multi_df()
   
+  for (col in 1:length(colnames(criterios))) {
+    colnames(criterios)[col] <- conf[['pares']][as.character(col)]
+    colnames(grados)[col] <- conf[['pares']][as.character(col)]
+  }
+  criteria_names <- colnames(criterios) # Vector of criteria names
+
   for (i in att) {
     for (j in att) {
       if (i == j) {
@@ -115,18 +100,21 @@ extract_weights <- function(normalised_matrix) {
 
 # Set environment and conf:
 setwd(system("pwd", intern = T))
-conf <- fromJSON(file = './conf/conf.json')
 multi_conf <- fromJSON(file = './conf/multicriteria_conf.json')
 
+list <- list(
+  read.csv2('./data/criterios.csv')[,-1],
+  read.csv2('./data/grados.csv')[,-1]
+)
+
+list[[1]] <- encode_criteria(list[[1]], multi_conf)
 # Preprocess data:
-df <- read_excel(multi_conf[['path_to_file']])
-list <- format_multi_df(df, multi_conf)
 att <- get_att(list)
 
 # Calculate weights:
 weights <- list()
 for (respondent in 1:nrow(list[[1]])) {
-  matrix <- get_matrix(list, att, row = respondent)
+  matrix <- get_matrix(list, att, row = respondent, conf=multi_conf)
   matrix <- normalise_matrix(matrix)
   weights_value <- extract_weights(normalised_matrix = matrix)
   for (attribute in att) {
@@ -139,6 +127,7 @@ for (attribute in att) {
   weights[[attribute]] <- mean(weights[[attribute]])
 }
 
+<<<<<<< HEAD
 
 
 
