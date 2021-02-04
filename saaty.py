@@ -45,16 +45,15 @@ def get_matrix(squema,selection, row):
     return squema
 
 
-def normalise_matrix(matrix):
+def get_priorities(matrix, pow_value):
     '''
     Normalise matrix given by get_matrix()
     '''
-    toret = matrix
-    for col in matrix.columns:
-        for row in matrix.index:
-            toret.loc[row,col] = matrix.loc[row,col] / matrix[col].sum()
-
-    return toret
+    subm = matrix.pow(pow_value)
+    sum_array = [sum(row[1]) for row in subm.iterrows()]
+    priorities = [elem/np.sum(sum_array) for elem in sum_array]
+    matrix['priorities'] = priorities
+    return matrix
 
 
 def extract_weights(nmatrix):
@@ -63,7 +62,7 @@ def extract_weights(nmatrix):
     '''
     toret = {}
     for row in nmatrix.index:
-        toret[row] = nmatrix.loc[row, ].mean()
+        toret[row] = nmatrix.loc[row, ]['priorities']
     return toret
 
 def pipeline(df, selection):
@@ -72,7 +71,7 @@ def pipeline(df, selection):
     for resp in df.index:
         row = df.loc[resp,]
         matrix = get_matrix(squema, selection, row)
-        nmatrix = normalise_matrix(matrix)
+        nmatrix = get_priorities(matrix, 10)
         rowweights = extract_weights(nmatrix)
         for key in rowweights.keys():
             weights[key].append(rowweights[key])
@@ -82,10 +81,13 @@ def pipeline(df, selection):
 
 
 df = pd.read_excel('./data/Datos.xlsx')
+df
+
+nmatrix = get_priorities(matrix, 10)
 
 nenv = range(13,19)
 nmain = range(1, 13)
-
+selection = nmain
 
 weights = pipeline(df, nenv)
 env_weights = weights.apply(np.mean, axis=0)
@@ -93,4 +95,7 @@ env_weights = weights.apply(np.mean, axis=0)
 weights = pipeline(df, nmain)
 main_weights = weights.apply(np.mean, axis=0)
 env_weights
-main_weights
+main_weightsdx
+
+matrix
+
