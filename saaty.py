@@ -148,6 +148,20 @@ class ahp():
         toret = pd.DataFrame(weights)
         return toret
 
+    def get_summary_df(self, level):
+        '''
+        '''
+        df = pd.DataFrame
+        for key in self.squema[level].keys():
+            if key not in ['main', 'attributes']:
+                df[key] = squema[level][key]
+        return df
+
+    def summary(self, level):
+        '''
+        '''
+        print(self.get_summary_df(level))
+
 
 if __name__ == '__main__':
     with open('./conf/conf.json') as f:
