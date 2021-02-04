@@ -1,0 +1,16 @@
+{
+    "train":true,
+    "data_path":"./data/Datos.xlsx",
+    "pow_value":10,
+    "confidence":0.95,
+    "niveles":{
+        "main":{
+            "range":[1,13],
+            "attributes":["econ","social","env","coste"]
+        },
+        "env":{
+            "range":[13,19],
+            "attributes":["nocons", "zepaozec", "zepayzec"]
+        }
+    }
+}
