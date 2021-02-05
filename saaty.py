@@ -8,7 +8,7 @@ import scipy.stats as st
 class ahp():
     '''
     '''
-    def __init__(self, train, data, pow_value, confidence, squema):
+    def __init__(self, train, data, pow_value, confidence, cratio_threshold, squema):
         '''
         '''
         self.data = data
@@ -19,7 +19,8 @@ class ahp():
                 self.weights[level] = self.pipeline(
                     df = self.data,
                     selection = self.get_selection_from_squema(level),
-                    pow_value = pow_value
+                    pow_value = pow_value,
+                    cratio_threshold=cratio_threshold
                 )
                 self.append_weights_mean(level=level)
                 self.append_weights_std(level=level)
@@ -27,6 +28,8 @@ class ahp():
                 
         else:
             pass
+
+        
 
     def append_weights_mean(self, level):
         '''
@@ -132,7 +135,7 @@ class ahp():
         return toret
 
 
-    def pipeline(self, df, selection, pow_value):
+    def pipeline(self, df, selection, pow_value, cratio_threshold):
         '''
         '''
         squema = self.build_squema(df, selection)
@@ -141,20 +144,27 @@ class ahp():
             row = df.loc[resp,]
             matrix = self.get_matrix(squema, selection, row)
             nmatrix = self.get_priorities(matrix, pow_value)
-            rowweights = self.extract_weights(nmatrix)
-            for key in rowweights.keys():
-                weights[key].append(rowweights[key])
+            c_r = self.calculate_consistency_ratio(
+                ci=self.calculate_consistency_index(nmatrix),
+                cr=self.calculate_random_consistency_index(len(nmatrix.index))
+            )
+            
+            if c_r < cratio_threshold:
+                rowweights = self.extract_weights(nmatrix)
+                for key in rowweights.keys():
+                    weights[key].append(rowweights[key])
 
         toret = pd.DataFrame(weights)
         return toret
+        
 
     def get_summary_df(self, level):
         '''
         '''
-        df = pd.DataFrame
+        df = pd.DataFrame()
         for key in self.squema[level].keys():
-            if key not in ['main', 'attributes']:
-                df[key] = squema[level][key]
+            if key not in ['range', 'attributes']:
+                df[key] = self.squema[level][key]
         return df
 
     def summary(self, level):
@@ -162,16 +172,74 @@ class ahp():
         '''
         print(self.get_summary_df(level))
 
+    def calculate_consistency_index(self, matrix):
+        '''
+        '''
+        eigen = np.sum(self.get_eigen(matrix))
+        n = len(matrix.index)
+        ci = (eigen-n)/(n-1)
+        return ci
+
+    def get_eigen(self, matrix):
+        toret = []
+        for i in range(len(matrix.index)):
+            if matrix.iloc[:, i].name != 'priorities':
+                toret.append(matrix.iloc[:, i].sum()*matrix.iloc[i,:]['priorities'])
+        return toret
+
+    def calculate_random_consistency_index(self, n):
+        '''
+        '''
+        cr = {
+            1:0,
+            2:0,
+            3:0.58,
+            4:0.9,
+            5:1.12,
+            6:1.24,
+            7:1.32,
+            8:1.41,
+            9:1.45,
+            10:1.49
+        }
+        return cr.get(n)
+
+    def calculate_consistency_ratio(self, ci, cr):
+        '''
+        '''
+        return ci/cr
+
+
+
+def get_submodel(df, path):
+    index = pd.read_csv(path, sep=';')
+    toret = df[df.REGISTRO.isin(index.respondent)]
+    return toret
+
+
 
 if __name__ == '__main__':
     with open('./conf/conf.json') as f:
         conf = json.load(f)
 
+    df = pd.read_excel(conf['data_path'])
+
+    model1 = df
+    model2 = get_submodel(df, './choice_data/base_data_time.csv')
+    model3 = get_submodel(df, './choice_data/dom_data.csv')
+    model4 = get_submodel(df, './choice_data/dom_data_time.csv')
+
+
+
     ah = ahp(
         train=conf['train'],
-        data=pd.read_excel(conf['data_path']),
+        data=model1,
         pow_value=conf['pow_value'],
         confidence=conf['confidence'],
+        cratio_threshold=conf['cratio_threshold'],
         squema=conf['niveles']
     )
-    ah.squema
+    len(ah.weights['main'].index)
+    #ah.squema
+    df = ah.get_summary_df('main')
+    df
