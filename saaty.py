@@ -1,7 +1,6 @@
 import pandas as pd
 from collections import defaultdict
 import numpy as np
-import json
 import scipy.stats as st
 
 
@@ -326,38 +325,3 @@ class ahp():
         xmax = np.max(x)
         factor = (upper - lower) / (xmax - xmin)
         return ((x - xmin) * factor + lower)
-
-
-if __name__ == '__main__':
-    with open('./conf/conf.json') as f:
-        conf = json.load(f)
-
-    df = pd.read_excel(conf['data_path'])
-
-
-    def get_submodel(df, path):
-        index = pd.read_csv(path, sep=';')
-        toret = df[df.REGISTRO.isin(index.respondent)]
-        return toret
-
-    model1 = df
-    model2 = get_submodel(df, './choice_data/base_data_time.csv')
-    model3 = get_submodel(df, './choice_data/dom_data.csv')
-    model4 = get_submodel(df, './choice_data/dom_data_time.csv')
-
-
-
-    ah = ahp(
-        train=conf['train'],
-        data=model1,
-        pow_value=conf['pow_value'],
-        confidence=conf['confidence'],
-        cratio_threshold=conf['cratio_threshold'],
-        squema=conf['niveles']
-    )
-    len(ah.weights['main'].index)
-    #ah.squema
-    df = ah.get_summary_df('main')
-
-    strat = pd.read_excel('./choice_data/dummy_strat.xlsx')
-    result = ah.set_ahp_weights(strat)
