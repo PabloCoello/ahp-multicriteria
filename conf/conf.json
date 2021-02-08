@@ -1,6 +1,5 @@
 {
     "train":true,
-    "data_path":"./data/Datos.xlsx",
     "pow_value":10,
     "confidence":0.95,
     "cratio_threshold":0.1,
