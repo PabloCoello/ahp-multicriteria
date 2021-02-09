@@ -188,29 +188,20 @@ class ahp():
         toret = pd.DataFrame(weights)
         return toret
 
-    def get_summary_df(self, level):
+    def get_summary_list(self):
         '''
-        Return df with summary statistics of calculated weights from 
+        Return dict with summary statistics of calculated weights from 
         survey data.
 
-        args:
-            -level: string, level of the hierarchy from which extract the
-                    summary. 
         '''
-        df = pd.DataFrame()
-        for key in self.squema[level].keys():
-            if key not in ['range', 'attributes']:
-                df[key] = self.squema[level][key]
-        return df
-
-    def summary(self, level):
-        '''
-        Print summary of a given lvl.
-
-        args:
-            -level: string, level to be printed.
-        '''
-        print(self.get_summary_df(level))
+        toret = {}
+        for level in self.squema.keys():
+            df = pd.DataFrame()
+            for key in self.squema[level].keys():
+                if key not in ['range', 'attributes']:
+                    df[key] = self.squema[level][key]
+            toret[level] = df
+        return toret
 
     def calculate_consistency_index(self, matrix):
         '''
