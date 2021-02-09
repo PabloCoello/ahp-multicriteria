@@ -281,7 +281,7 @@ class ahp():
             -data: df, data for which has to be calculated the ranking.
         '''
         data.set_index('Alternatives', inplace=True)
-        data = data.apply(self.rescale, axis=0)
+        data = data.apply(self.refactor, axis=0)
 
         for key in self.squema.keys():
             if key != 'main':
@@ -325,3 +325,12 @@ class ahp():
         xmax = np.max(x)
         factor = (upper - lower) / (xmax - xmin)
         return ((x - xmin) * factor + lower)
+
+    def refactor(self, x):
+        '''
+        Returns a refactorized variable as proportion of 1.
+
+        args:
+            -x: list, array to be refactorized.
+        '''
+        return x/np.sum(x)
