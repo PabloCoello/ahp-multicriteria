@@ -270,13 +270,14 @@ class ahp():
         '''
         '''
         toret = pd.DataFrame()
-        for key in self.attribute_pairwise_matrix():
-            self.priorities_matrix[key] = self.attribute_pairwise_matrix['priorities']
+        for key in self.attribute_pairwise_matrix.keys():
+            self.priorities_matrix[key] = self.attribute_pairwise_matrix[key]['priorities']
 
     def get_attribute_submatrix(self, data, attribute, pow_value):
         '''
         '''
         x = data[attribute]
+        x = self.check_zero(x)
         toret = pd.DataFrame(columns=x.index, index=x.index)
         for index, j in x.iteritems():
             col = [i/j for i in x]
@@ -284,6 +285,13 @@ class ahp():
         self.attribute_pairwise_matrix[attribute] = self.get_priorities(
             toret, pow_value)
 
+    def check_zero(self, x):
+        '''
+        '''
+        minimum = np.min(x[x!=0])
+        x.loc[x==0] = minimum/10
+        return x
+    
     def set_ahp_weights(self, data):
         '''
         Return scaled data with calculated weights for ahp ranking.
