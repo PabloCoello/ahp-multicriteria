@@ -154,7 +154,9 @@ class ahp():
         '''
         Normalise matrix given by get_matrix()
         '''
-        subm = matrix.pow(pow_value)
+        if 'priorities' in matrix.columns:
+            matrix.drop(columns=['priorities'], inplace = True)
+        subm = pd.DataFrame(np.linalg.matrix_power(matrix.values, pow_value))
         sum_array = [sum(row[1]) for row in subm.iterrows()]
         priorities = [elem/np.sum(sum_array) for elem in sum_array]
         matrix['priorities'] = priorities
