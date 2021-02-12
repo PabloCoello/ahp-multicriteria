@@ -2,6 +2,7 @@ import pandas as pd
 from collections import defaultdict
 import numpy as np
 import scipy.stats as st
+import copy
 
 
 class ahp():
@@ -36,13 +37,13 @@ class ahp():
 
         '''
         self.data = data
-        self.squema = squema
+        self.squema = copy.deepcopy(squema)
         self.pow_value = pow_value
         self.attribute_pairwise_matrix = {}
         self.priorities_matrix = pd.DataFrame()
         self.weights = {}
         if train:
-            for level in squema.keys():
+            for level in self.squema.keys():
                 self.weights[level] = self.pipeline(
                     df=self.data,
                     selection=self.get_selection_from_squema(level),
