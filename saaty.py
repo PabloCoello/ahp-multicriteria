@@ -37,6 +37,9 @@ class ahp():
         '''
         self.data = data
         self.squema = squema
+        self.pow_value = pow_value
+        self.attribute_pairwise_matrix = {}
+        self.priorities_matrix = pd.DataFrame()
         self.weights = {}
         if train:
             for level in squema.keys():
@@ -49,7 +52,6 @@ class ahp():
                 self.append_weights_mean(level=level)
                 self.append_weights_std(level=level)
                 self.append_weights_ic(level=level, confidence=confidence)
-
         else:
             pass
 
@@ -264,6 +266,24 @@ class ahp():
         '''
         return ci/cr
 
+    def get_priorities_matrix(self):
+        '''
+        '''
+        toret = pd.DataFrame()
+        for key in self.attribute_pairwise_matrix():
+            self.priorities_matrix[key] = self.attribute_pairwise_matrix['priorities']
+
+    def get_attribute_submatrix(self, data, attribute, pow_value):
+        '''
+        '''
+        x = data[attribute]
+        toret = pd.DataFrame(columns=x.index, index=x.index)
+        for index, j in x.iteritems():
+            col = [i/j for i in x]
+            toret[index] = col
+        self.attribute_pairwise_matrix[attribute] = self.get_priorities(
+            toret, pow_value)
+
     def set_ahp_weights(self, data):
         '''
         Return scaled data with calculated weights for ahp ranking.
@@ -272,11 +292,14 @@ class ahp():
             -data: df, data for which has to be calculated the ranking.
         '''
         data.set_index('Alternatives', inplace=True)
-        data = data.apply(self.refactor, axis=0)
+        [self.get_attribute_submatrix(data, att, self.pow_value)
+         for att in data.columns]
+        self.get_priorities_matrix()
 
+        data = self.priorities_matrix
         for key in self.squema.keys():
             if key != 'main':
-                df = data[self.squema[key]['attributes']]
+                df = self.priorities_matrix[self.squema[key]['attributes']]
                 df = self.get_weights(key, df, self.squema)
                 data[key] = df['weight']
 
