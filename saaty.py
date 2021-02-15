@@ -44,12 +44,14 @@ class ahp():
         self.weights = {}
         if train:
             for level in self.squema.keys():
-                self.weights[level] = self.pipeline(
+                piperes = self.pipeline(
                     df=self.data,
                     selection=self.get_selection_from_squema(level),
                     pow_value=pow_value,
                     cratio_threshold=cratio_threshold
                 )
+                self.cr = piperes.pop('cr_ratio')
+                self.weights[level] = piperes
                 self.append_weights_mean(level=level)
                 self.append_weights_std(level=level)
                 self.append_weights_ic(level=level, confidence=confidence)
@@ -186,6 +188,7 @@ class ahp():
             )
 
             if c_r < cratio_threshold:
+                weights['cr_ratio'].append(c_r)
                 rowweights = self.extract_weights(nmatrix)
                 for key in rowweights.keys():
                     weights[key].append(rowweights[key])
@@ -276,14 +279,17 @@ class ahp():
         for key in self.attribute_pairwise_matrix.keys():
             self.priorities_matrix[key] = self.attribute_pairwise_matrix[key]['priorities']
 
-    def get_attribute_submatrix(self, data, attribute, pow_value):
+    def get_attribute_submatrix(self, data, attribute, pow_value, inverse):
         '''
         '''
         x = data[attribute]
         x = self.check_zero(x)
         toret = pd.DataFrame(columns=x.index, index=x.index)
         for index, j in x.iteritems():
-            col = [i/j for i in x]
+            if attribute in inverse:
+                col = [j/i for i in x]
+            else:
+                col = [i/j for i in x]
             toret[index] = col
         self.attribute_pairwise_matrix[attribute] = self.get_priorities(
             toret, pow_value)
@@ -295,7 +301,7 @@ class ahp():
         x.loc[x==0] = minimum/10
         return x
     
-    def set_ahp_weights(self, data):
+    def set_ahp_weights(self, data, inverse=[]):
         '''
         Return scaled data with calculated weights for ahp ranking.
 
@@ -303,7 +309,7 @@ class ahp():
             -data: df, data for which has to be calculated the ranking.
         '''
         data.set_index('Alternatives', inplace=True)
-        [self.get_attribute_submatrix(data, att, self.pow_value)
+        [self.get_attribute_submatrix(data, att, self.pow_value, inverse)
          for att in data.columns]
         self.get_priorities_matrix()
 
