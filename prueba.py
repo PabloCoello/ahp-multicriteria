@@ -23,8 +23,10 @@ res = ahp(
 )
 res.squema
 res.weights
-res.cr
-res.weights['main'].cr_ratio.hist()
+res.cr.hist()
+res.weights['main'].coste.hist()
+
+res.get_summary_list()
 df = res.set_ahp_weights(dummy, inverse = ['coste'])
 
 serie = df['coste'].sort_values(ascending=True)
